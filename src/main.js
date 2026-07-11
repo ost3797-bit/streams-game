@@ -789,7 +789,7 @@ function renderPlayerBoard() {
     cell.type = 'button';
     
     // 번호 레이블 (1~20)
-    const indexLabel = `<span class="absolute top-1 left-2 text-[10px] ${isConfirmed ? 'text-white/40' : 'text-slate-500'} font-bold">${i + 1}</span>`;
+    const indexLabel = `<span class="absolute top-1 left-1.5 text-[9px] sm:text-[10px] ${isConfirmed ? 'text-white/40' : 'text-slate-500'} font-bold">${i + 1}</span>`;
     
     if (isConfirmed) {
       const isJoker = tileVal === '★';
@@ -797,10 +797,10 @@ function renderPlayerBoard() {
         ? 'border-amber-400 bg-gradient-to-br from-amber-600 to-amber-700 text-amber-100 shadow-[0_0_10px_rgba(252,211,77,0.3)]' 
         : 'border-indigo-600 bg-slate-800 text-white';
       
-      cell.className = `relative h-20 rounded-xl flex items-center justify-center font-extrabold text-2xl border-2 transition-all shadow-md ${borderClass} cursor-not-allowed`;
+      cell.className = `relative h-14 sm:h-16 md:h-20 rounded-xl flex items-center justify-center font-extrabold text-lg sm:text-xl md:text-2xl border-2 transition-all shadow-md ${borderClass} cursor-not-allowed`;
       cell.innerHTML = `
         ${indexLabel}
-        <span class="m-auto text-2xl ${isJoker ? 'animate-float' : ''}">${tileVal}</span>
+        <span class="m-auto text-lg sm:text-xl md:text-2xl ${isJoker ? 'animate-float' : ''}">${tileVal}</span>
       `;
       
     } else if (isTemp) {
@@ -809,11 +809,11 @@ function renderPlayerBoard() {
         ? 'border-amber-400 text-amber-400 bg-amber-950/20 shadow-[0_0_12px_rgba(252,211,77,0.4)]' 
         : 'border-teal-400 text-teal-400 bg-teal-950/20 shadow-[0_0_12px_rgba(45,212,191,0.3)]';
         
-      cell.className = `relative h-20 rounded-xl flex items-center justify-center font-extrabold text-2xl border-2 border-dashed transition-all cursor-pointer animate-pulse ${borderClass}`;
+      cell.className = `relative h-14 sm:h-16 md:h-20 rounded-xl flex items-center justify-center font-extrabold text-lg sm:text-xl md:text-2xl border-2 border-dashed transition-all cursor-pointer animate-pulse ${borderClass}`;
       cell.innerHTML = `
         ${indexLabel}
-        <span class="m-auto text-2xl">${tileVal}</span>
-        <span class="absolute bottom-1 right-2 text-[8px] text-teal-400/60 font-medium">임시</span>
+        <span class="m-auto text-lg sm:text-xl md:text-2xl">${tileVal}</span>
+        <span class="absolute bottom-1 right-1.5 text-[8px] text-teal-400/60 font-medium">임시</span>
       `;
       cell.addEventListener('click', () => handleCellClick(i, true));
       
@@ -821,14 +821,14 @@ function renderPlayerBoard() {
       // 빈 슬롯
       if (isLocked) {
         // 이미 턴을 확정했거나 대기중이면 배치 불가능
-        cell.className = "relative h-20 rounded-xl flex items-center justify-center border border-slate-800 bg-slate-950/10 text-slate-700 cursor-not-allowed";
+        cell.className = "relative h-14 sm:h-16 md:h-20 rounded-xl flex items-center justify-center border border-slate-800 bg-slate-950/10 text-slate-700 cursor-not-allowed";
         cell.innerHTML = `
           ${indexLabel}
-          <span class="m-auto text-slate-800 text-xs font-semibold">대기</span>
+          <span class="m-auto text-slate-800 text-[10px] sm:text-xs font-semibold">대기</span>
         `;
       } else {
         // 배치 가능한 빈 칸
-        cell.className = "relative h-20 rounded-xl flex items-center justify-center border-2 border-dashed border-slate-800 bg-slate-950/50 text-slate-600 hover:border-teal-500/50 hover:bg-slate-800/20 transition-all cursor-pointer";
+        cell.className = "relative h-14 sm:h-16 md:h-20 rounded-xl flex items-center justify-center border-2 border-dashed border-slate-800 bg-slate-950/50 text-slate-600 hover:border-teal-500/50 hover:bg-slate-800/20 transition-all cursor-pointer";
         cell.innerHTML = `${indexLabel}`;
         cell.addEventListener('click', () => handleCellClick(i, false));
       }
@@ -983,12 +983,12 @@ function renderFinalResultUI(board, result) {
       : 'text-white font-bold';
       
     const slotHtml = `
-      <div class="flex flex-col items-center justify-between p-2 rounded-xl border ${slotInfo.colorClass} min-h-[70px] relative overflow-hidden">
+      <div class="flex flex-col items-center justify-between p-1.5 md:p-2 rounded-xl border ${slotInfo.colorClass} min-h-[56px] sm:min-h-[64px] md:min-h-[70px] relative overflow-hidden">
         <span class="text-[9px] text-slate-400 absolute top-1 left-1.5 font-bold">${idx + 1}</span>
-        <div class="flex-grow flex items-center justify-center mt-2.5">
-          <span class="text-base ${tileColorClass}">${displayVal}</span>
+        <div class="flex-grow flex items-center justify-center mt-2 md:mt-2.5">
+          <span class="text-sm sm:text-base ${tileColorClass}">${displayVal}</span>
         </div>
-        <span class="text-[9px] font-bold opacity-60 mt-1">S${slotInfo.streamIndex}</span>
+        <span class="text-[9px] font-bold opacity-60 mt-0.5 md:mt-1">S${slotInfo.streamIndex}</span>
       </div>
     `;
     gridContainer.insertAdjacentHTML('beforeend', slotHtml);

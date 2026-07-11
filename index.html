@@ -257,7 +257,7 @@
       </section>
 
       <!-- ================= 7. 학생 인게임 화면 (Player Board) ================= -->
-      <section id="view-player-game" class="w-full max-w-4xl hidden animate-pop-in flex flex-col gap-6">
+      <section id="view-player-game" class="w-full max-w-4xl hidden animate-pop-in flex flex-col gap-4 md:gap-6">
         
         <!-- 상단 대시보드: 현재 뽑힌 타일 및 안내 정보 -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
@@ -309,13 +309,13 @@
         </div>
         
         <!-- 메인 보드: 1번부터 20번까지의 격자칸 -->
-        <div class="glass p-6 rounded-3xl flex flex-col items-center">
+        <div class="glass p-4 md:p-6 rounded-3xl flex flex-col items-center">
           <div class="w-full flex justify-between items-center mb-4">
             <h3 class="text-lg font-bold text-slate-200">나의 스트림스 보드</h3>
             <p class="text-xs text-slate-400">💡 팁: 타일을 올린 뒤, 확정 전까지 다른 빈 칸을 클릭해 이동할 수 있습니다.</p>
           </div>
           
-          <div id="game-board-grid" class="w-full grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-10 gap-3">
+          <div id="game-board-grid" class="w-full grid grid-cols-5 sm:grid-cols-10 gap-2 md:gap-3">
             <!-- 20개의 슬롯이 JS에 의해 동적 삽입됨 -->
           </div>
         </div>
@@ -362,7 +362,7 @@
           <h4 class="text-sm font-semibold text-slate-300 mb-3 flex items-center gap-1.5">
             <span>🎮</span> 완성된 나의 보드판 (스트림별 하이라이트)
           </h4>
-          <div id="player-final-board-grid" class="w-full grid grid-cols-2 sm:grid-cols-5 md:grid-cols-10 gap-2 bg-slate-950/20 p-4 rounded-2xl border border-slate-800">
+          <div id="player-final-board-grid" class="w-full grid grid-cols-5 sm:grid-cols-10 gap-2 bg-slate-950/20 p-4 rounded-2xl border border-slate-800">
             <!-- 20개의 슬롯이 JS에 의해 동적 삽입됨. 스트림 별로 다른 배경색 하이라이트 적용 -->
           </div>
         </div>
