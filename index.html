@@ -2,10 +2,27 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>스트림스(Streams) - 실시간 교실 보드게임</title>
   <meta name="description" content="초등학교 교실에서 다 함께 즐기는 실시간 스트림스 보드게임 웹 앱">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎮</text></svg>">
+
+  <!-- PWA: 테마 색상 -->
+  <meta name="theme-color" content="#0f172a">
+
+  <!-- PWA: 아이콘 -->
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png">
+
+  <!-- PWA: iOS 홈화면 추가 설정 -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="스트림스">
+  <link rel="apple-touch-icon" href="/icon-192.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png">
+
+  <!-- PWA: Android/기타 -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="application-name" content="스트림스">
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col">
   <!-- 전체 App Container -->
