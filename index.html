@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>스트림스(Streams) - 실시간 교실 보드게임</title>
+  <meta name="description" content="초등학교 교실에서 다 함께 즐기는 실시간 스트림스 보드게임 웹 앱">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎮</text></svg>">
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col">
+  <!-- 전체 App Container -->
+  <main id="app" class="flex-grow flex flex-col justify-between max-w-7xl mx-auto w-full p-4 md:p-6">
+    
+    <!-- Header -->
+    <header class="flex justify-between items-center mb-6">
+      <div class="flex items-center gap-3">
+        <span class="text-3xl">🎮</span>
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight bg-gradient-to-r from-teal-400 to-indigo-400 bg-clip-text text-transparent">Streams Board Game</h1>
+          <p class="text-xs text-slate-400">교실 실시간 멀티플레이어 스트림스</p>
+        </div>
+      </div>
+      <div id="connection-status" class="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+        <span class="h-2 w-2 rounded-full bg-emerald-400 animate-ping"></span>
+        <span>실시간 연결됨</span>
+      </div>
+    </header>
+
+    <!-- Content Area (동적 토글) -->
+    <div id="view-container" class="flex-grow flex flex-col justify-center items-center w-full">
+
+      <!-- ================= 1. 역할 선택 화면 ================= -->
+      <section id="view-select-role" class="w-full max-w-md glass p-8 rounded-3xl text-center animate-pop-in">
+        <h2 class="text-3xl font-extrabold mb-2">교실 스트림스</h2>
+        <p class="text-slate-300 text-sm mb-8">역할을 선택하여 게임을 시작하세요.</p>
+        
+        <div class="grid grid-cols-1 gap-4">
+          <button id="btn-select-host" class="group flex flex-col items-center justify-center p-6 bg-gradient-to-br from-indigo-600 to-indigo-800 hover:from-indigo-500 hover:to-indigo-700 active:scale-95 transition-all duration-200 rounded-2xl border border-indigo-400/30 text-white shadow-lg">
+            <span class="text-4xl mb-2 group-hover:scale-110 transition-transform duration-200">👩‍🏫</span>
+            <span class="text-xl font-bold">교사 (호스트)</span>
+            <span class="text-xs text-indigo-200 mt-1">방을 만들어 게임을 진행하고 관리합니다.</span>
+          </button>
+          
+          <button id="btn-select-player" class="group flex flex-col items-center justify-center p-6 bg-gradient-to-br from-teal-600 to-teal-800 hover:from-teal-500 hover:to-teal-700 active:scale-95 transition-all duration-200 rounded-2xl border border-teal-400/30 text-white shadow-lg">
+            <span class="text-4xl mb-2 group-hover:scale-110 transition-transform duration-200">🎒</span>
+            <span class="text-xl font-bold">학생 (플레이어)</span>
+            <span class="text-xs text-teal-200 mt-1">교사가 개설한 방 코드에 접속하여 참여합니다.</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- ================= 2. 교사 대기실 (Lobby) ================= -->
+      <section id="view-host-lobby" class="w-full max-w-4xl hidden animate-pop-in flex flex-col gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- 좌측: 방 코드 및 시작 컨트롤 -->
+          <div class="glass p-6 rounded-2xl flex flex-col justify-between">
+            <div>
+              <h2 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">방 코드</h2>
+              <div class="flex items-center gap-3 mb-6">
+                <span id="host-room-code" class="text-5xl font-black tracking-widest text-indigo-400 bg-slate-950/50 px-4 py-2 rounded-xl border border-indigo-500/20">----</span>
+                <button id="btn-copy-code" class="p-2 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition-colors" title="코드 복사">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
+                </button>
+              </div>
+              <p class="text-slate-300 text-sm mb-4 leading-relaxed">
+                학생들에게 스크린의 4자리 방 코드를 공유해 주세요. 학생들이 참여하면 오른쪽 칠판에 이름이 나타납니다.
+              </p>
+            </div>
+            
+            <div class="flex flex-col gap-3">
+              <div class="flex items-center justify-between text-sm px-1 text-slate-400">
+                <span>접속한 학생 수</span>
+                <span class="font-semibold text-white"><span id="host-lobby-count">0</span>명</span>
+              </div>
+              <button id="btn-start-game" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 active:scale-95 transition-all text-white font-bold rounded-xl shadow-lg shadow-indigo-600/20 text-lg flex items-center justify-center gap-2">
+                <span>🚀</span> 게임 시작하기
+              </button>
+              <button id="btn-cancel-lobby" class="w-full py-2 bg-slate-800 hover:bg-slate-700 active:scale-95 transition-all text-slate-400 font-medium rounded-xl text-sm">
+                역할 선택으로 돌아가기
+              </button>
+            </div>
+          </div>
+          
+          <!-- 우측: 칠판 (학생 리스트) -->
+          <div class="lg:col-span-2 chalkboard p-6 rounded-2xl flex flex-col min-h-[400px]">
+            <div class="flex justify-between items-center pb-3 border-b border-dashed border-white/20 mb-4">
+              <h3 class="text-2xl font-bold chalk-text">📋 오늘의 출석판 (참가 학생)</h3>
+              <span class="text-xs text-white/50 bg-white/10 px-2 py-0.5 rounded">Realtime</span>
+            </div>
+            
+            <div id="host-lobby-players" class="flex-grow grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 overflow-y-auto max-h-[350px] content-start chalk-text text-xl">
+              <!-- 플레이어 이름이 분필 느낌으로 동적 삽입됨 -->
+              <p class="col-span-full text-center text-white/40 my-auto text-lg py-12">학생들의 접속을 기다리고 있습니다...</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 3. 교사 인게임 화면 (Teacher Control Panel) ================= -->
+      <section id="view-host-game" class="w-full max-w-5xl hidden animate-pop-in flex flex-col gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          <!-- 좌측: 타일 컨트롤러 -->
+          <div class="glass p-6 rounded-2xl flex flex-col justify-between">
+            <div class="text-center">
+              <h2 class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-2">진행 상태 (<span id="host-game-turn">0</span> / 20 턴)</h2>
+              
+              <!-- 대형 타일 디스플레이 -->
+              <div class="my-6 flex justify-center">
+                <div id="host-current-tile" class="w-36 h-48 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl shadow-2xl flex flex-col justify-between p-4 border border-indigo-400/40 transform transition-transform duration-300 hover:rotate-2 relative overflow-hidden">
+                  <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-white/5 rounded-full"></div>
+                  <!-- 상단 기호 -->
+                  <div class="flex justify-between items-center text-white/80 font-bold text-lg">
+                    <span class="host-tile-indicator">★</span>
+                    <span>Streams</span>
+                  </div>
+                  <!-- 중앙 메인 값 -->
+                  <div id="host-tile-value" class="text-6xl font-extrabold text-white text-center leading-none tracking-tighter drop-shadow-md">★</div>
+                  <!-- 하단 기호 -->
+                  <div class="flex justify-between items-center text-white/80 font-bold text-lg">
+                    <span>Streams</span>
+                    <span class="host-tile-indicator">★</span>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 플레이어들 확정 수치 정보 -->
+              <div class="bg-slate-950/40 border border-slate-800 rounded-xl p-4 mb-6">
+                <div class="flex justify-between text-xs text-slate-400 mb-1">
+                  <span>턴 배치 완료자</span>
+                  <span class="font-bold text-white"><span id="host-confirmed-count">0</span> / <span id="host-total-count">0</span> 명</span>
+                </div>
+                <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                  <div id="host-confirmed-progress" class="bg-teal-400 h-full w-0 transition-all duration-300"></div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="flex flex-col gap-3">
+              <button id="btn-draw-tile" class="w-full py-4 bg-teal-500 hover:bg-teal-400 active:scale-95 transition-all text-slate-950 font-extrabold rounded-xl shadow-lg shadow-teal-500/20 text-lg flex items-center justify-center gap-2">
+                <span>🎲</span> 타일 뽑기
+              </button>
+              <button id="btn-end-game-early" class="w-full py-2 bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 border border-rose-900/40 active:scale-95 transition-all font-medium rounded-xl text-sm">
+                게임 강제 종료
+              </button>
+            </div>
+          </div>
+          
+          <!-- 중간: 확정 현황판 (학생 실시간 진척도) -->
+          <div class="glass p-6 rounded-2xl flex flex-col">
+            <h3 class="text-lg font-bold text-slate-200 mb-4 flex items-center gap-2">
+              <span class="flex h-3 w-3 relative">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-3 w-3 bg-teal-500"></span>
+              </span>
+              실시간 학생 현황판
+            </h3>
+            
+            <div id="host-game-players" class="flex-grow overflow-y-auto max-h-[380px] space-y-2 pr-1">
+              <!-- 플레이어별 확정/진행 현황이 동적 삽입됨 -->
+              <p class="text-center text-slate-500 py-12 text-sm">플레이어 정보를 불러오는 중...</p>
+            </div>
+          </div>
+
+          <!-- 우측: 뽑힌 타일 히스토리 -->
+          <div class="glass p-6 rounded-2xl flex flex-col">
+            <h3 class="text-lg font-bold text-slate-200 mb-4 flex items-center justify-between">
+              <span>📜 뽑힌 타일 히스토리</span>
+              <span class="text-xs text-indigo-400 font-semibold">남은 타일: <span id="host-deck-remaining">20</span>장</span>
+            </h3>
+            
+            <div id="host-tile-history" class="flex-grow grid grid-cols-4 sm:grid-cols-5 md:grid-cols-4 gap-2 overflow-y-auto max-h-[380px] content-start">
+              <!-- 이전에 뽑힌 타일들이 여기에 나열됨 -->
+              <p class="col-span-full text-center text-slate-500 py-12 text-sm">아직 뽑힌 타일이 없습니다.</p>
+            </div>
+          </div>
+          
+        </div>
+      </section>
+
+      <!-- ================= 4. 교사 최종 리더보드 (Leaderboard) ================= -->
+      <section id="view-host-leaderboard" class="w-full max-w-3xl hidden animate-pop-in flex flex-col gap-6">
+        <div class="glass p-8 rounded-3xl flex flex-col items-center">
+          <div class="text-6xl mb-2 animate-float">🏆</div>
+          <h2 class="text-3xl font-extrabold mb-1">Streams 최종 순위표</h2>
+          <p class="text-slate-400 text-sm mb-8">게임이 모두 종료되었습니다. 우리 반 영광의 주인공들입니다!</p>
+          
+          <!-- 순위표 목록 -->
+          <div class="w-full bg-slate-950/40 rounded-2xl border border-slate-800 overflow-hidden mb-8">
+            <div class="grid grid-cols-12 gap-2 px-6 py-4 bg-slate-900/80 border-b border-slate-800 font-bold text-sm text-slate-400">
+              <span class="col-span-2 text-center">순위</span>
+              <span class="col-span-6">학생 이름</span>
+              <span class="col-span-4 text-right">최종 점수</span>
+            </div>
+            
+            <div id="leaderboard-list" class="divide-y divide-slate-800 max-h-[400px] overflow-y-auto">
+              <!-- 동적으로 랭킹 노출됨 -->
+              <div class="text-center py-12 text-slate-500">
+                집계된 점수가 없습니다.
+              </div>
+            </div>
+          </div>
+          
+          <button id="btn-restart-host" class="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg transition-all active:scale-95">
+            처음으로 돌아가기
+          </button>
+        </div>
+      </section>
+
+      <!-- ================= 5. 학생 참가 화면 (Player Join) ================= -->
+      <section id="view-player-join" class="w-full max-w-md hidden glass p-8 rounded-3xl animate-pop-in">
+        <h2 class="text-3xl font-extrabold text-center mb-2">게임 참가하기</h2>
+        <p class="text-slate-300 text-sm text-center mb-8">교사가 개설한 방 코드와 이름을 입력하세요.</p>
+        
+        <form id="form-player-join" class="space-y-5">
+          <div>
+            <label for="player-room-input" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">방 코드 (4자리)</label>
+            <input type="text" id="player-room-input" placeholder="예: A1B2" maxlength="4" class="w-full px-4 py-3 bg-slate-950/50 border border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent text-center font-bold tracking-widest text-2xl text-teal-300 placeholder:text-slate-700 uppercase" required>
+          </div>
+          
+          <div>
+            <label for="player-name-input" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">내 이름</label>
+            <input type="text" id="player-name-input" placeholder="이름을 입력해 주세요" class="w-full px-4 py-3 bg-slate-950/50 border border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent font-medium text-lg placeholder:text-slate-600" required>
+          </div>
+          
+          <div class="pt-4 flex gap-3">
+            <button type="button" id="btn-back-join" class="w-1/3 py-3 bg-slate-800 hover:bg-slate-700 active:scale-95 transition-all text-slate-400 font-medium rounded-xl text-sm">
+              뒤로가기
+            </button>
+            <button type="submit" class="w-2/3 py-3 bg-teal-500 hover:bg-teal-400 active:scale-95 transition-all text-slate-950 font-extrabold rounded-xl text-lg shadow-lg shadow-teal-500/20">
+              대기실 입장
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- ================= 6. 학생 대기실 ================= -->
+      <section id="view-player-lobby" class="w-full max-w-md hidden glass p-8 rounded-3xl text-center animate-pop-in">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-teal-500/10 text-teal-400 mb-6 border border-teal-500/20">
+          <span class="h-6 w-6 rounded-full bg-teal-400 animate-ping absolute"></span>
+          <span class="text-3xl relative">🏫</span>
+        </div>
+        
+        <h2 class="text-2xl font-bold mb-2"><span id="player-lobby-name" class="text-teal-400">플레이어</span> 님 환영합니다!</h2>
+        <p class="text-slate-300 text-sm mb-6">방 코드 <span id="player-lobby-code" class="font-bold text-white tracking-wider px-2 py-0.5 rounded bg-slate-950/40 border border-slate-800">----</span>에 접속했습니다.</p>
+        
+        <div class="bg-slate-950/40 rounded-2xl border border-slate-800 p-6 mb-8 text-slate-300 text-sm space-y-2">
+          <p class="font-medium text-white flex items-center justify-center gap-1">
+            <span class="animate-pulse">⏳</span> 교사(호스트)의 게임 시작 대기 중...
+          </p>
+          <p class="text-xs text-slate-500">선생님이 게임을 시작하면 화면이 자동으로 전환됩니다.</p>
+        </div>
+        
+        <button id="btn-exit-lobby" class="px-6 py-2 bg-slate-800 hover:bg-slate-700 text-slate-400 text-sm font-medium rounded-xl active:scale-95 transition-all">
+          방 나가기
+        </button>
+      </section>
+
+      <!-- ================= 7. 학생 인게임 화면 (Player Board) ================= -->
+      <section id="view-player-game" class="w-full max-w-4xl hidden animate-pop-in flex flex-col gap-6">
+        
+        <!-- 상단 대시보드: 현재 뽑힌 타일 및 안내 정보 -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+          
+          <!-- 정보란 -->
+          <div class="glass p-4 rounded-xl flex items-center gap-3">
+            <span class="text-2xl">👤</span>
+            <div>
+              <p class="text-xs text-slate-400">플레이어</p>
+              <p class="font-bold text-teal-400 text-lg" id="player-game-name">이름</p>
+            </div>
+            <div class="ml-auto text-right">
+              <p class="text-xs text-slate-400">방 코드</p>
+              <p class="font-bold text-white text-sm" id="player-game-code">----</p>
+            </div>
+          </div>
+          
+          <!-- 이번 턴에 배치할 타일 정보 (가장 시선을 끌어야 함) -->
+          <div class="bg-gradient-to-r from-teal-900/50 to-indigo-900/50 border border-teal-500/30 p-4 rounded-2xl flex items-center justify-center gap-6 shadow-xl relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-16 h-16 bg-white/5 rounded-full translate-x-4 -translate-y-4"></div>
+            <div class="text-center md:text-left">
+              <span class="text-xs font-semibold text-teal-300 uppercase tracking-widest block mb-0.5">현재 턴: <span id="player-game-turn">0</span> / 20</span>
+              <span class="text-base font-extrabold text-white">이번에 배치할 타일</span>
+            </div>
+            
+            <div id="player-draw-tile-wrapper" class="w-16 h-22 bg-gradient-to-br from-teal-400 to-indigo-500 rounded-xl shadow-lg border border-white/20 flex flex-col justify-between p-2 transform hover:scale-105 duration-200">
+              <div class="flex justify-between items-center text-white/70 font-bold text-xxs">
+                <span class="player-tile-indicator">★</span>
+                <span>S</span>
+              </div>
+              <div id="player-current-tile-val" class="text-3xl font-extrabold text-white text-center drop-shadow-md">★</div>
+              <div class="flex justify-between items-center text-white/70 font-bold text-xxs">
+                <span>S</span>
+                <span class="player-tile-indicator">★</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 버튼 컨트롤 영역 (임시 배치 후 확정) -->
+          <div class="glass p-4 rounded-xl flex flex-col gap-2 justify-center">
+            <div id="confirm-status-text" class="text-xs text-center text-slate-400 font-medium">
+              타일을 보드 빈 칸에 올려주세요.
+            </div>
+            <button id="btn-confirm-placement" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-500 active:scale-95 transition-all text-white font-extrabold rounded-xl shadow-md disabled:shadow-none text-base" disabled>
+              배치 확정하기
+            </button>
+          </div>
+          
+        </div>
+        
+        <!-- 메인 보드: 1번부터 20번까지의 격자칸 -->
+        <div class="glass p-6 rounded-3xl flex flex-col items-center">
+          <div class="w-full flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold text-slate-200">나의 스트림스 보드</h3>
+            <p class="text-xs text-slate-400">💡 팁: 타일을 올린 뒤, 확정 전까지 다른 빈 칸을 클릭해 이동할 수 있습니다.</p>
+          </div>
+          
+          <div id="game-board-grid" class="w-full grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-10 gap-3">
+            <!-- 20개의 슬롯이 JS에 의해 동적 삽입됨 -->
+          </div>
+        </div>
+
+        <!-- 실시간 점수 예측 (미리보는 중간 예상 점수) -->
+        <div class="glass p-4 rounded-2xl flex items-center justify-between text-sm text-slate-400 border border-white/5">
+          <div class="flex items-center gap-2">
+            <span>📈</span>
+            <span>현재 실시간 예상 스트림:</span>
+            <span class="font-bold text-teal-400"><span id="player-predict-stream">0</span>칸</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span>점수:</span>
+            <span class="font-bold text-white"><span id="player-predict-score">0</span>점</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 8. 학생 종료 대기 화면 (Finished Screen) ================= -->
+      <section id="view-player-finished" class="w-full max-w-3xl hidden glass p-8 rounded-3xl text-center animate-pop-in">
+        <div class="text-6xl mb-4 animate-float">🎉</div>
+        <h2 class="text-3xl font-extrabold mb-2">제출 완료!</h2>
+        <p class="text-slate-300 text-sm mb-6"><span id="player-finished-name" class="font-bold text-teal-400">학생</span>님의 보드가 다 채워졌습니다.</p>
+        
+        <!-- 최종 점수 및 최장 스트림 요약 -->
+        <div class="bg-gradient-to-br from-indigo-950 to-slate-900 rounded-2xl border border-indigo-500/20 p-6 mb-6 text-center max-w-md mx-auto">
+          <p class="text-xs text-slate-400 uppercase tracking-widest mb-1">나의 최종 결과</p>
+          <div class="flex justify-around items-center my-4">
+            <div>
+              <p class="text-slate-400 text-xxs">최장 스트림</p>
+              <p class="text-3xl font-black text-teal-400"><span id="player-final-stream">0</span>칸</p>
+            </div>
+            <div class="h-8 w-px bg-slate-800"></div>
+            <div>
+              <p class="text-slate-400 text-xxs">최종 획득 점수</p>
+              <p class="text-3xl font-black text-indigo-400"><span id="player-final-score">0</span>점</p>
+            </div>
+          </div>
+          <p class="text-xxs text-slate-500">교사 화면의 최종 순위표에서 결과를 확인하세요!</p>
+        </div>
+
+        <!-- 완성된 나의 보드판 및 스트림 시각화 -->
+        <div class="w-full mb-6 text-left">
+          <h4 class="text-sm font-semibold text-slate-300 mb-3 flex items-center gap-1.5">
+            <span>🎮</span> 완성된 나의 보드판 (스트림별 하이라이트)
+          </h4>
+          <div id="player-final-board-grid" class="w-full grid grid-cols-2 sm:grid-cols-5 md:grid-cols-10 gap-2 bg-slate-950/20 p-4 rounded-2xl border border-slate-800">
+            <!-- 20개의 슬롯이 JS에 의해 동적 삽입됨. 스트림 별로 다른 배경색 하이라이트 적용 -->
+          </div>
+        </div>
+
+        <!-- 점수 계산 상세 내역 -->
+        <div class="w-full text-left bg-slate-950/50 rounded-2xl p-5 border border-slate-800 mb-6">
+          <h4 class="text-sm font-bold text-white mb-3 flex items-center gap-1.5 border-b border-slate-800 pb-2">
+            <span>📊</span> 상세 점수 계산 내역
+          </h4>
+          <div id="player-final-score-details" class="text-xs text-slate-300 space-y-2 max-h-[220px] overflow-y-auto pr-1">
+            <!-- 동적으로 스트림 목록 및 최종 수식이 렌더링됨 -->
+          </div>
+        </div>
+        
+        <button id="btn-exit-finished" class="px-8 py-3 bg-slate-800 hover:bg-slate-700 text-slate-400 text-sm font-bold rounded-xl active:scale-95 transition-all">
+          첫 화면으로 나가기
+        </button>
+      </section>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-8 text-center text-xs text-slate-500 flex justify-between items-center border-t border-slate-800/40 pt-4">
+      <span>Streams Multiplayer Boardgame v1.0</span>
+      <span class="hover:text-slate-400 transition-colors cursor-pointer" id="btn-show-rules-modal">💡 게임 규칙 보기</span>
+    </footer>
+  </main>
+
+  <!-- ================= 9. 게임 규칙 안내 모달 ================= -->
+  <dialog id="rules-modal" class="glass-dark p-6 rounded-3xl max-w-lg w-full text-slate-100 backdrop:bg-slate-950/80 outline-none border border-white/10">
+    <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-800">
+      <h3 class="text-xl font-bold flex items-center gap-1.5">🎲 스트림스(Streams) 게임 안내</h3>
+      <button id="btn-close-rules" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+    </div>
+    <div class="space-y-4 text-sm leading-relaxed text-slate-300 max-h-[400px] overflow-y-auto pr-1">
+      <p>
+        <strong>스트림스(Streams)</strong>는 교사가 임의로 뽑는 타일(1~30, 일부 중복, 조커)을 보드의 1번부터 20번 칸 중 하나에 배치하여, <strong>가장 긴 오름차순(비내림차순) 수열(스트림)</strong>을 만드는 게임입니다.
+      </p>
+      <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-800">
+        <h4 class="font-bold text-white text-xs mb-1">총 40장의 타일 주머니 구성:</h4>
+        <ul class="list-disc list-inside space-y-0.5 text-xs text-slate-400">
+          <li>숫자 타일: 1부터 30까지 각 1장씩 (30장)</li>
+          <li>중복 숫자 타일: 11부터 19까지 각 1장씩 더! (9장)</li>
+          <li>조커 타일 (★): 1장 (어떤 숫자든 될 수 있는 와일드카드)</li>
+        </ul>
+      </div>
+      <div class="bg-indigo-950/40 p-3 rounded-lg border border-indigo-900/40">
+        <h4 class="font-bold text-teal-300 text-xs mb-1">진행 방법:</h4>
+        <p class="text-xs text-slate-300">
+          1. 교사가 타일을 뽑으면 학생들에게 실시간으로 동일 타일이 공유됩니다.<br>
+          2. 학생들은 보드의 빈 칸에 타일을 올립니다. <strong>(확정하기 전에는 다른 칸으로 이동할 수 있습니다.)</strong><br>
+          3. 배치를 결정했으면 <strong>'배치 확정하기'</strong> 버튼을 눌러 고정합니다.<br>
+          4. 20턴 동안 보드를 채운 뒤, 가장 긴 오름차순 스트림의 길이에 따라 점수가 계산됩니다.
+        </p>
+      </div>
+      <div>
+        <h4 class="font-bold text-white text-xs mb-1">길이별 점수표:</h4>
+        <div class="grid grid-cols-4 gap-1 text-center text-xxs font-mono">
+          <div class="bg-slate-900 p-1.5 rounded">1칸: 0점</div>
+          <div class="bg-slate-900 p-1.5 rounded">2칸: 1점</div>
+          <div class="bg-slate-900 p-1.5 rounded">3칸: 3점</div>
+          <div class="bg-slate-900 p-1.5 rounded">4칸: 5점</div>
+          <div class="bg-slate-900 p-1.5 rounded">5칸: 7점</div>
+          <div class="bg-slate-900 p-1.5 rounded">6칸: 9점</div>
+          <div class="bg-slate-900 p-1.5 rounded">7칸: 11점</div>
+          <div class="bg-slate-900 p-1.5 rounded">8칸: 15점</div>
+          <div class="bg-slate-900 p-1.5 rounded">9칸: 20점</div>
+          <div class="bg-slate-900 p-1.5 rounded">10칸: 25점</div>
+          <div class="bg-slate-900 p-1.5 rounded">11칸: 30점</div>
+          <div class="bg-slate-900 p-1.5 rounded">12칸: 35점</div>
+          <div class="bg-slate-900 p-1.5 rounded">13칸: 40점</div>
+          <div class="bg-slate-900 p-1.5 rounded">14칸: 50점</div>
+          <div class="bg-slate-900 p-1.5 rounded">15칸: 60점</div>
+          <div class="bg-slate-900 p-1.5 rounded">16칸: 70점</div>
+          <div class="bg-slate-900 p-1.5 rounded">17칸: 85점</div>
+          <div class="bg-slate-900 p-1.5 rounded">18칸: 100점</div>
+          <div class="bg-slate-900 p-1.5 rounded">19칸: 150점</div>
+          <div class="bg-slate-900 p-1.5 rounded">20칸: 300점</div>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
